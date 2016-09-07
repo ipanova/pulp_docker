@@ -23,6 +23,7 @@ def update_auth_header(headers, token):
     """
     headers = headers or {}
     headers['Authorization'] = 'Bearer %s' % token
+    headers['Accept'] = 'application/vnd.docker.distribution.manifest.v2+json'
     return headers
 
 

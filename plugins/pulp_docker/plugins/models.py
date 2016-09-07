@@ -110,11 +110,9 @@ class Manifest(pulp_models.FileContentUnit):
 
     def save(self):
         """
-        Save the model to the database, after validating that the schema version is exactly 1.
+        Save the model to the database
         """
-        if self.schema_version != 1:
-            raise ValueError(
-                "The DockerManifest class only supports Docker v2, Schema 1 manifests.")
+
         super(Manifest, self).save()
 
     @staticmethod
@@ -189,7 +187,7 @@ class Manifest(pulp_models.FileContentUnit):
         return unpadded_b64 + paddings[len(unpadded_b64) % 4]
 
     @classmethod
-    def from_json(cls, manifest_json, digest):
+    def from_json(cls, manifest_json, digest, tag, upstream_name):
         """
         Construct and return a DockerManifest from the given JSON document.
 
@@ -199,13 +197,20 @@ class Manifest(pulp_models.FileContentUnit):
         :param digest:        The content digest of the manifest, as described at
                               https://docs.docker.com/registry/spec/api/#content-digests
         :type  digest:        basestring
+        :param tag:           Tag of the image reposotory
+        :type  tag:           basestring
+        :param upstream_name: Name of the upstream repository'
+        :type  upstream_name: basestring
 
         :return:              An initialized DockerManifest object
         :rtype:               pulp_docker.common.models.DockerManifest
         """
         manifest = json.loads(manifest_json)
-        fs_layers = [FSLayer(blob_sum=layer['blobSum']) for layer in manifest['fsLayers']]
-        return cls(digest=digest, name=manifest['name'], tag=manifest['tag'],
+        try:
+            fs_layers = [FSLayer(blob_sum=layer['digest']) for layer in manifest['layers']]
+        except:
+            fs_layers = [FSLayer(blob_sum=layer['blobSum']) for layer in manifest['fsLayers']]
+        return cls(digest=digest, name=upstream_name, tag=tag,
                    schema_version=manifest['schemaVersion'], fs_layers=fs_layers)
 
     def get_symlink_name(self):

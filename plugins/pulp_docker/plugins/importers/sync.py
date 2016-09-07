@@ -231,7 +231,8 @@ class DownloadManifestsStep(publish_step.PluginStep):
             # Save the manifest to the working directory
             with open(os.path.join(self.get_working_dir(), digest), 'w') as manifest_file:
                 manifest_file.write(manifest)
-            manifest = models.Manifest.from_json(manifest, digest)
+            upstream_name = self.config.get('upstream_name')
+            manifest = models.Manifest.from_json(manifest, digest, tag, upstream_name)
             self.parent.available_manifests.append(manifest)
             for layer in manifest.fs_layers:
                 available_blobs.add(layer.blob_sum)
