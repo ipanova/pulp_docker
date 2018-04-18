@@ -385,7 +385,8 @@ class TokenAuthDownloadStep(publish_step.DownloadStep):
             _logger.debug(_('Download unauthorized, attempting to retrieve a token.'))
             request = self._requests_map[report.url]
             token = token_util.request_token(self.parent.index_repository.token_downloader,
-                                             request, report.headers)
+                                             request, report.headers,
+                                             self.parent.index_repository.name)
             self.downloader.session.headers = token_util.update_auth_header(
                 self.downloader.session.headers, token)
             _logger.debug("Trying download again with new bearer token.")
