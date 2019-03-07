@@ -34,14 +34,13 @@ class DockerFirstStage(Stage):
 
     async def run(self):
         future_manifests = []
-        future_blobs = []
-        future_tags = []
+        put_later_list_dc = []
         put_later_man_dc = []
         put_later_blob_dc = []
         tag_list = []
         to_download = []
         man_dcs = {}
-        with ProgressBar(message='Downloading tag list for the repo') as pb:
+        with ProgressBar(message='Downloading tag list for the repo', total=1) as pb:
             relative_url = '/v2/{name}/tags/list'.format(name=self.remote.namespaced_upstream_name)
             tag_list_url = urljoin(self.remote.url, relative_url)
             list_downloader = self.remote.get_downloader(tag_list_url)
@@ -55,7 +54,7 @@ class DockerFirstStage(Stage):
 
             pb.increment()
 
-        with ProgressBar(message='Parsing Tags') as pb:
+        with ProgressBar(message='Creating Download requests for Tags') as pb:
             # could use total of len(tag_list) but if schema1 is present done will be < total
             for tag_name in tag_list:
                 relative_url = '/v2/{name}/manifests/{tag}'.format(
@@ -65,9 +64,10 @@ class DockerFirstStage(Stage):
                 url = urljoin(self.remote.url, relative_url)
                 downloader = self.remote.get_downloader(url=url)
                 to_download.append(downloader.run(extra_data={'headers': V2_ACCEPT_HEADERS}))
-        import pydevd
-        pydevd.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-        with ProgressBar(message='Parsing Content from Tags') as pb:
+                pb.increment()
+
+
+        with ProgressBar(message='Parsing SchemaV2 Tags') as pb:
             while to_download:
                 done, to_download = await asyncio.wait(to_download, return_when=asyncio.FIRST_COMPLETED)
                 for downloader in done:
@@ -78,22 +78,26 @@ class DockerFirstStage(Stage):
                     mediatype = content_data.get('mediaType')
                     if  mediatype:
                         tag_dc = self.create_tag(results.url.split('/')[-1], mediatype, results)
-                        #future_tags.append(dc.get_or_create_future())
                         if type(tag_dc.content) is ManifestListTag:
                             list_dc = self.create_and_process_tagged_manifest_list(tag_dc, content_data, results)
+                            # TODO replace this with a simple counter that will be used in a later ProgressBar
+                            # it matters when i put DC in the queue
+                            put_later_list_dc.append(list_dc)
                             await self.put(list_dc)
-                            pb.increment()
+                            #pb.increment()
                             for manifest_data in content_data.get('manifests'):
                                 man_dc = self.create_and_process_manifest(list_dc, manifest_data)
                                 future_manifests.append(man_dc.get_or_create_future())
                                 man_dcs[man_dc.content.digest]=man_dc
+                                put_later_man_dc.append(man_dc)
                                 await self.put(man_dc)
-                                pb.increment()
+                                #pb.increment()
                         elif type(tag_dc.content) is ManifestTag:
                             man_dc = self.create_and_process_tagged_manifest(tag_dc, content_data, results)
+                            put_later_man_dc.append(man_dc)
                             await self.put(man_dc)
-                            pb.increment()
-                            self.handle_blobs(man_dc, content_data, future_blobs, put_later_blob_dc)
+                            #pb.increment()
+                            self.handle_blobs(man_dc, content_data, put_later_blob_dc)
                         await self.put(tag_dc)
                         pb.increment()
                     else:
@@ -121,12 +125,19 @@ class DockerFirstStage(Stage):
                     put_later_man_dc.append(man_dc)
 
                     self.handle_blobs(man_dc, content_data, future_blobs, put_later_blob_dc)
+        """
+
+        with ProgressBar(message='Parsing Manifest Lists') as pb:
+            for l in put_later_list_dc:
+                    #await self.put(l)
+                    pb.increment()
+
 
         with ProgressBar(message='Parsing Image manifests') as pb:
             for man in put_later_man_dc:
-                    await self.put(man)
+                    #await self.put(man)
                     pb.increment()
-        """
+
         with ProgressBar(message='Parsing Blobs') as pb:
             for manifest_future in asyncio.as_completed(future_manifests):
                 man = await manifest_future
@@ -134,24 +145,25 @@ class DockerFirstStage(Stage):
                     raw = content_file.read()
                 content_data = json.loads(raw)
                 man_dc = man_dcs[man.digest]
-                self.handle_blobs(man_dc, content_data, future_blobs, put_later_blob_dc)
+                self.handle_blobs(man_dc, content_data, put_later_blob_dc)
             for blob in put_later_blob_dc:
                 await self.put(blob)
                 pb.increment()
 
     
-    def handle_blobs(self, man, content_data, future_blobs, put_later_blob_dc):
+    def handle_blobs(self, man, content_data, put_later_blob_dc):
         for layer in content_data.get("layers"):
             if not self._include_layer(layer):
                 continue
             blob_dc = self.create_and_process_blob(man, layer)
-            future_blobs.append(blob_dc.get_or_create_future())
+            blob_dc.get_or_create_future()
             put_later_blob_dc.append(blob_dc)
         layer = content_data.get('config')
         blob_dc = self.create_and_process_blob(man, layer)
         blob_dc.extra_data['config_relation'] = man
-        future_blobs.append(blob_dc.get_or_create_future())
+        blob_dc.get_or_create_future()
         put_later_blob_dc.append(blob_dc)
+
 
     def create_tag(self, tag_name, mediatype, results):
         """
@@ -342,6 +354,7 @@ class InterrelateContent(Stage):
         Relate each item in the input queue to objects specified on the DeclarativeContent.
         """
         async for dc in self.items():
+
             if dc.extra_data.get('relation'):
                 if type(dc.content) is ManifestList:
                     self.relate_manifest_list(dc)
