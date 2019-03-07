@@ -39,6 +39,8 @@ class DockerFirstStage(Stage):
         put_later_man_dc = []
         put_later_blob_dc = []
         tag_list = []
+        to_download = []
+        man_dcs = {}
         with ProgressBar(message='Downloading tag list for the repo') as pb:
             relative_url = '/v2/{name}/tags/list'.format(name=self.remote.namespaced_upstream_name)
             tag_list_url = urljoin(self.remote.url, relative_url)
@@ -49,9 +51,9 @@ class DockerFirstStage(Stage):
                 tags_dict = json.loads(tags_raw.read())
                 tag_list = tags_dict['tags']
                 tag_list = ['musl', 'latest', 'glibc', '1-musl', '1-ubuntu', '1.29']
+                #tag_list =['a']
 
             pb.increment()
-
 
         with ProgressBar(message='Parsing Tags') as pb:
             # could use total of len(tag_list) but if schema1 is present done will be < total
@@ -62,21 +64,44 @@ class DockerFirstStage(Stage):
                 )
                 url = urljoin(self.remote.url, relative_url)
                 downloader = self.remote.get_downloader(url=url)
-                await downloader.run(extra_data={'headers': V2_ACCEPT_HEADERS})
+                to_download.append(downloader.run(extra_data={'headers': V2_ACCEPT_HEADERS}))
+        import pydevd
+        pydevd.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        with ProgressBar(message='Parsing Content from Tags') as pb:
+            while to_download:
+                done, to_download = await asyncio.wait(to_download, return_when=asyncio.FIRST_COMPLETED)
+                for downloader in done:
+                    results = downloader.result()
+                    with open(results.path) as content_file:
+                        raw = content_file.read()
+                    content_data = json.loads(raw)
+                    mediatype = content_data.get('mediaType')
+                    if  mediatype:
+                        tag_dc = self.create_tag(results.url.split('/')[-1], mediatype, results)
+                        #future_tags.append(dc.get_or_create_future())
+                        if type(tag_dc.content) is ManifestListTag:
+                            list_dc = self.create_and_process_tagged_manifest_list(tag_dc, content_data, results)
+                            await self.put(list_dc)
+                            pb.increment()
+                            for manifest_data in content_data.get('manifests'):
+                                man_dc = self.create_and_process_manifest(list_dc, manifest_data)
+                                future_manifests.append(man_dc.get_or_create_future())
+                                man_dcs[man_dc.content.digest]=man_dc
+                                await self.put(man_dc)
+                                pb.increment()
+                        elif type(tag_dc.content) is ManifestTag:
+                            man_dc = self.create_and_process_tagged_manifest(tag_dc, content_data, results)
+                            await self.put(man_dc)
+                            pb.increment()
+                            self.handle_blobs(man_dc, content_data, future_blobs, put_later_blob_dc)
+                        await self.put(tag_dc)
+                        pb.increment()
+                    else:
+                        continue
 
-                with open(downloader.path) as content_file:
-                    raw = content_file.read()
-                content_data = json.loads(raw)
-                mediatype = content_data.get('mediaType')
-                if  mediatype:
-                    dc = self.create_tag(tag_name, mediatype)
-                    future_tags.append(dc.get_or_create_future())
-                    await self.put(dc)
-                    pb.increment()
-                else:
-                    continue
-
-
+        """
+        with ProgressBar(messsage='Parsing Content from Tags') as pb:
+            
         with ProgressBar(message='Parsing Manifest Lists') as pb:
             for tag_future in asyncio.as_completed(future_tags):
                 tag = await tag_future
@@ -101,14 +126,15 @@ class DockerFirstStage(Stage):
             for man in put_later_man_dc:
                     await self.put(man)
                     pb.increment()
-
+        """
         with ProgressBar(message='Parsing Blobs') as pb:
             for manifest_future in asyncio.as_completed(future_manifests):
                 man = await manifest_future
                 with man._artifacts.get().file.open() as content_file:
                     raw = content_file.read()
                 content_data = json.loads(raw)
-                self.handle_blobs(man, content_data, future_blobs, put_later_blob_dc)
+                man_dc = man_dcs[man.digest]
+                self.handle_blobs(man_dc, content_data, future_blobs, put_later_blob_dc)
             for blob in put_later_blob_dc:
                 await self.put(blob)
                 pb.increment()
@@ -127,7 +153,7 @@ class DockerFirstStage(Stage):
         future_blobs.append(blob_dc.get_or_create_future())
         put_later_blob_dc.append(blob_dc)
 
-    def create_tag(self, tag_name, mediatype):
+    def create_tag(self, tag_name, mediatype, results):
         """
         Create `DeclarativeContent` for each tag.
 
@@ -149,7 +175,7 @@ class DockerFirstStage(Stage):
             tag = ManifestListTag(name=tag_name)
         elif mediatype == MEDIA_TYPE.MANIFEST_V2:
             tag = ManifestTag(name=tag_name)
-        manifest_artifact = Artifact()
+        manifest_artifact = Artifact(sha256=results.artifact_attributes['sha256'])
         da = DeclarativeArtifact(
             artifact=manifest_artifact,
             url=url,
@@ -161,7 +187,7 @@ class DockerFirstStage(Stage):
         return tag_dc
 
 
-    def create_and_process_tagged_manifest_list(self, tag_dc, manifest_list_data):
+    def create_and_process_tagged_manifest_list(self, tag_dc, manifest_list_data, results):
         """
         Create a ManifestList and nested ImageManifests from the Tag artifact.
 
@@ -169,7 +195,8 @@ class DockerFirstStage(Stage):
             tag_dc (pulpcore.plugin.stages.DeclarativeContent): dc for a Tag
             manifest_list_data (dict): Data about a ManifestList
         """
-        digest = "sha256:{digest}".format(digest=tag_dc._artifacts.get().sha256)
+
+        digest = "sha256:{digest}".format(digest=results.artifact_attributes['sha256'])
         relative_url = '/v2/{name}/manifests/{digest}'.format(
             name=self.remote.namespaced_upstream_name,
             digest=digest,
@@ -181,7 +208,7 @@ class DockerFirstStage(Stage):
             media_type=manifest_list_data['mediaType'],
         )
         da = DeclarativeArtifact(
-            artifact=tag_dc._artifacts.get(),
+            artifact=Artifact(sha256=results.artifact_attributes['sha256']),
             url=url,
             relative_path=digest,
             remote=self.remote,
@@ -192,7 +219,7 @@ class DockerFirstStage(Stage):
         
         return list_dc
 
-    def create_and_process_tagged_manifest(self, tag_dc, manifest_data):
+    def create_and_process_tagged_manifest(self, tag_dc, manifest_data, results):
         """
         Create a Manifest and nested ManifestBlobs from the Tag artifact.
 
@@ -200,7 +227,7 @@ class DockerFirstStage(Stage):
             tag_dc (pulpcore.plugin.stages.DeclarativeContent): dc for a Tag
             manifest_data (dict): Data about a single new ImageManifest.
         """
-        digest = "sha256:{digest}".format(digest=tag_dc._artifacts.get().sha256)
+        digest = "sha256:{digest}".format(digest=results.artifact_attributes['sha256'])
         manifest = ImageManifest(
             digest=digest,
             schema_version=manifest_data['schemaVersion'],
@@ -212,7 +239,7 @@ class DockerFirstStage(Stage):
         )
         url = urljoin(self.remote.url, relative_url)
         da = DeclarativeArtifact(
-            artifact=tag_dc._artifacts.get(),
+            artifact=Artifact(sha256=results.artifact_attributes['sha256']),
             url=url,
             relative_path=digest,
             remote=self.remote,

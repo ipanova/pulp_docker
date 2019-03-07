@@ -77,9 +77,9 @@ class DockerDeclarativeVersion(DeclarativeVersion):
             ContentSaver(),
             RemoteArtifactSaver(),
             ResolveContentFutures(),
-            #InterrelateContent(),
+            InterrelateContent(),
         ]
-        for dupe_query_dict in self.remove_duplicates:
-            pipeline.append(RemoveDuplicates(new_version, **dupe_query_dict))
+        #for dupe_query_dict in self.remove_duplicates:
+        #    pipeline.append(RemoveDuplicates(new_version, **dupe_query_dict))
 
         return pipeline
