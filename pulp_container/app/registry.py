@@ -8,8 +8,8 @@ from multidict import MultiDict
 
 from pulpcore.plugin.content import Handler, PathNotResolved
 from pulpcore.plugin.models import ContentArtifact
-from pulp_docker.app.models import DockerDistribution, Tag
-from pulp_docker.constants import MEDIA_TYPE
+from pulp_container.app.models import ContainerDistribution, Tag
+from pulp_container.constants import MEDIA_TYPE
 
 
 log = logging.getLogger(__name__)
@@ -28,10 +28,10 @@ class ArtifactNotFound(Exception):
 
 class Registry(Handler):
     """
-    A set of handlers for the Docker v2 API.
+    A set of handlers for the Container Registry v2 API.
     """
 
-    distribution_model = DockerDistribution
+    distribution_model = ContainerDistribution
 
     @staticmethod
     async def get_accepted_media_types(request):
@@ -95,15 +95,15 @@ class Registry(Handler):
     @staticmethod
     async def serve_v2(request):
         """
-        Handler for Docker Registry v2 root.
+        Handler for Container Registry v2 root.
 
-        The docker client uses this endpoint to discover that the V2 API is available.
+        The container client uses this endpoint to discover that the V2 API is available.
         """
         return web.json_response({}, headers=v2_headers)
 
     async def tags_list(self, request):
         """
-        Handler for Docker Registry v2 tags/list API.
+        Handler for Container Registry v2 tags/list API.
         """
         path = request.match_info['path']
         distribution = self._match_distribution(path)

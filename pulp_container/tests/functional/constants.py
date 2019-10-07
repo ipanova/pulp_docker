@@ -9,36 +9,36 @@ from pulp_smash.pulp3.constants import (
     CONTENT_PATH
 )
 
-DOCKER_MANIFEST_PATH = urljoin(CONTENT_PATH, 'docker/manifests/')
+DOCKER_MANIFEST_PATH = urljoin(CONTENT_PATH, 'container/manifests/')
 
-DOCKER_TAG_PATH = urljoin(CONTENT_PATH, 'docker/tags/')
+DOCKER_TAG_PATH = urljoin(CONTENT_PATH, 'container/tags/')
 
-DOCKER_BLOB_PATH = urljoin(CONTENT_PATH, 'docker/blobs/')
+DOCKER_BLOB_PATH = urljoin(CONTENT_PATH, 'container/blobs/')
 
-DOCKER_CONTENT_PATH = urljoin(CONTENT_PATH, 'docker/unit/')
+DOCKER_CONTENT_PATH = urljoin(CONTENT_PATH, 'container/unit/')
 
-DOCKER_TAGGING_PATH = urljoin(BASE_PATH, 'docker/tag/')
+DOCKER_TAGGING_PATH = urljoin(BASE_PATH, 'container/tag/')
 
-DOCKER_UNTAGGING_PATH = urljoin(BASE_PATH, 'docker/untag/')
+DOCKER_UNTAGGING_PATH = urljoin(BASE_PATH, 'container/untag/')
 
-DOCKER_TAG_COPY_PATH = urljoin(BASE_PATH, 'docker/tags/copy/')
+DOCKER_TAG_COPY_PATH = urljoin(BASE_PATH, 'container/tags/copy/')
 
-DOCKER_MANIFEST_COPY_PATH = urljoin(BASE_PATH, 'docker/manifests/copy/')
+DOCKER_MANIFEST_COPY_PATH = urljoin(BASE_PATH, 'container/manifests/copy/')
 
-DOCKER_CONTENT_NAME = 'docker.blob'
+DOCKER_CONTENT_NAME = 'container.blob'
 
-DOCKER_DISTRIBUTION_PATH = urljoin(BASE_DISTRIBUTION_PATH, 'docker/docker/')
+DOCKER_DISTRIBUTION_PATH = urljoin(BASE_DISTRIBUTION_PATH, 'container/container/')
 
-DOCKER_REMOTE_PATH = urljoin(BASE_REMOTE_PATH, 'docker/docker/')
+DOCKER_REMOTE_PATH = urljoin(BASE_REMOTE_PATH, 'container/container/')
 
-DOCKER_RECURSIVE_ADD_PATH = urljoin(BASE_PATH, 'docker/recursive-add/')
+DOCKER_RECURSIVE_ADD_PATH = urljoin(BASE_PATH, 'container/recursive-add/')
 
-DOCKER_RECURSIVE_REMOVE_PATH = urljoin(BASE_PATH, 'docker/recursive-remove/')
+DOCKER_RECURSIVE_REMOVE_PATH = urljoin(BASE_PATH, 'container/recursive-remove/')
 
-DOCKER_IMAGE_URL = urljoin(PULP_FIXTURES_BASE_URL, 'docker/busybox:latest.tar')
+DOCKER_IMAGE_URL = urljoin(PULP_FIXTURES_BASE_URL, 'container/busybox:latest.tar')
 """The URL to a Docker image as created by ``docker save``."""
 
-# hello-world is the smalest docker image available on docker hub 1.84kB
+# hello-world is the smalest container image available on docker hub 1.84kB
 DOCKER_UPSTREAM_NAME = 'hello-world'
 """The name of a Docker repository.
 

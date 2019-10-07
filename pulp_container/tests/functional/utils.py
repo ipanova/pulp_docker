@@ -17,7 +17,7 @@ from pulp_smash.pulp3.utils import (
     sync
 )
 
-from pulp_docker.tests.functional.constants import (
+from pulp_container.tests.functional.constants import (
     DOCKER_CONTENT_NAME,
     DOCKER_CONTENT_PATH,
     DOCKER_REMOTE_PATH,
@@ -27,9 +27,9 @@ from pulp_docker.tests.functional.constants import (
 
 
 def set_up_module():
-    """Skip tests Pulp 3 isn't under test or if pulp_docker isn't installed."""
+    """Skip tests Pulp 3 isn't under test or if pulp_container isn't installed."""
     require_pulp_3(SkipTest)
-    require_pulp_plugins({'pulp_docker'}, SkipTest)
+    require_pulp_plugins({'pulp_container'}, SkipTest)
 
 
 def gen_docker_remote(**kwargs):

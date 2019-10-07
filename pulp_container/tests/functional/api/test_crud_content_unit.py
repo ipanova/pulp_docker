@@ -8,9 +8,9 @@ from pulp_smash import api, config, utils
 from pulp_smash.pulp3.constants import ARTIFACTS_PATH
 from pulp_smash.pulp3.utils import delete_orphans
 
-from pulp_docker.tests.functional.constants import DOCKER_IMAGE_URL, DOCKER_CONTENT_PATH
-from pulp_docker.tests.functional.utils import gen_docker_image_attrs, skip_if
-from pulp_docker.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
+from pulp_container.tests.functional.constants import DOCKER_IMAGE_URL, DOCKER_CONTENT_PATH
+from pulp_container.tests.functional.utils import gen_docker_image_attrs, skip_if
+from pulp_container.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
 
 
 # Read the instructions provided below for the steps needed to enable this test (see: FIXME's).

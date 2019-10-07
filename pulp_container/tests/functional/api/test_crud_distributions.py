@@ -8,9 +8,9 @@ from requests.exceptions import HTTPError
 from pulp_smash import api, config, selectors, utils
 from pulp_smash.pulp3.utils import gen_distribution
 
-from pulp_docker.tests.functional.constants import DOCKER_DISTRIBUTION_PATH
-from pulp_docker.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
-from pulp_docker.tests.functional.utils import skip_if
+from pulp_container.tests.functional.constants import DOCKER_DISTRIBUTION_PATH
+from pulp_container.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
+from pulp_container.tests.functional.utils import skip_if
 
 
 class CRUDDockerDistributionsTestCase(unittest.TestCase):

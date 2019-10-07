@@ -14,19 +14,19 @@ from pulp_smash.pulp3.utils import (
     sync,
 )
 
-from pulp_docker.tests.functional.utils import (
+from pulp_container.tests.functional.utils import (
     gen_docker_remote,
     get_docker_hub_remote_blobsums
 )
 
-from pulp_docker.tests.functional.constants import (
+from pulp_container.tests.functional.constants import (
     DOCKER_CONTENT_NAME,
     DOCKER_DISTRIBUTION_PATH,
     DOCKER_REMOTE_PATH,
     DOCKER_UPSTREAM_NAME,
     DOCKER_UPSTREAM_TAG,
 )
-from pulp_docker.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
+from pulp_container.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
 
 
 class PullContentTestCase(unittest.TestCase):

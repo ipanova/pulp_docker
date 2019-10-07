@@ -1,5 +1,5 @@
 from pulpcore.plugin.models import Repository, RepositoryVersion, ContentArtifact, CreatedResource
-from pulp_docker.app.models import Manifest, Tag
+from pulp_container.app.models import Manifest, Tag
 
 
 def tag_image(manifest_pk, tag, repository_pk):

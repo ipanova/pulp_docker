@@ -7,7 +7,7 @@ from pulp_smash.pulp3.constants import REPO_PATH
 from pulp_smash.pulp3.utils import gen_repo, sync
 from requests.exceptions import HTTPError
 
-from pulp_docker.tests.functional.constants import (
+from pulp_container.tests.functional.constants import (
     DOCKER_MANIFEST_COPY_PATH,
     DOCKER_TAG_PATH,
     DOCKER_TAG_COPY_PATH,
@@ -16,8 +16,8 @@ from pulp_docker.tests.functional.constants import (
     DOCKER_RECURSIVE_ADD_PATH,
     DOCKERHUB_PULP_FIXTURE_1,
 )
-from pulp_docker.tests.functional.utils import gen_docker_remote
-from pulp_docker.constants import MEDIA_TYPE
+from pulp_container.tests.functional.utils import gen_docker_remote
+from pulp_container.constants import MEDIA_TYPE
 
 
 class TestManifestCopy(unittest.TestCase):

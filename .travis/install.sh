@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+!/usr/bin/env bash
 
 # WARNING: DO NOT EDIT!
 #
@@ -35,7 +35,7 @@ else
 fi
 
 
-PLUGIN=pulp_docker
+PLUGIN=pulp_container
 
 
 # For pulpcore, and any other repo that might check out a pulp-certguard PR

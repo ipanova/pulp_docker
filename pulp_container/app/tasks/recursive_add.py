@@ -1,6 +1,6 @@
 from pulpcore.plugin.models import Repository, RepositoryVersion
 
-from pulp_docker.app.models import Blob, Manifest, MEDIA_TYPE, Tag
+from pulp_container.app.models import Blob, Manifest, MEDIA_TYPE, Tag
 
 
 def recursive_add_content(repository_pk, content_units):
@@ -55,7 +55,7 @@ def recursive_add_content(repository_pk, content_units):
     latest_version = RepositoryVersion.latest(repository)
     if latest_version:
         tags_in_repo = latest_version.content.filter(
-            _type="docker.tag"
+            _type="container.tag"
         )
         tags_to_replace = Tag.objects.filter(
             pk__in=tags_in_repo,

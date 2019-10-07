@@ -12,7 +12,7 @@ from pulpcore.plugin.models import Artifact, ProgressReport, Remote
 from pulpcore.plugin.stages import DeclarativeArtifact, DeclarativeContent, Stage
 from pulpcore.constants import TASK_STATES
 
-from pulp_docker.app.models import (Manifest, MEDIA_TYPE, Blob, Tag,
+from pulp_container.app.models import (Manifest, MEDIA_TYPE, Blob, Tag,
                                     BlobManifest, ManifestListManifest)
 
 
@@ -24,9 +24,9 @@ V2_ACCEPT_HEADERS = {
 }
 
 
-class DockerFirstStage(Stage):
+class ContainerFirstStage(Stage):
     """
-    The first stage of a pulp_docker sync pipeline.
+    The first stage of a pulp_container sync pipeline.
 
     In this stage all the content is discovered, including the nested one.
 
@@ -40,7 +40,7 @@ class DockerFirstStage(Stage):
 
     async def run(self):
         """
-        DockerFirstStage.
+        ContainerFirstStage.
         """
         future_manifests = []
         tag_list = []

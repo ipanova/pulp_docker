@@ -31,7 +31,7 @@ class TagSerializer(SingleArtifactContentSerializer):
     tagged_manifest = DetailRelatedField(
         many=False,
         help_text="Manifest that is tagged",
-        view_name='docker-manifests-detail',
+        view_name='container-manifests-detail',
         queryset=models.Manifest.objects.all()
     )
 
@@ -49,24 +49,24 @@ class ManifestSerializer(SingleArtifactContentSerializer):
     """
 
     digest = serializers.CharField(help_text="sha256 of the Manifest file")
-    schema_version = serializers.IntegerField(help_text="Docker schema version")
-    media_type = serializers.CharField(help_text="Docker media type of the file")
+    schema_version = serializers.IntegerField(help_text="Manifest schema version")
+    media_type = serializers.CharField(help_text="Manifest media type of the file")
     listed_manifests = DetailRelatedField(
         many=True,
         help_text="Manifests that are referenced by this Manifest List",
-        view_name='docker-manifests-detail',
+        view_name='container-manifests-detail',
         queryset=models.Manifest.objects.all()
     )
     blobs = DetailRelatedField(
         many=True,
         help_text="Blobs that are referenced by this Manifest",
-        view_name='docker-blobs-detail',
+        view_name='container-blobs-detail',
         queryset=models.Blob.objects.all()
     )
     config_blob = DetailRelatedField(
         many=False,
         help_text="Blob that contains configuration for this Manifest",
-        view_name='docker-blobs-detail',
+        view_name='container-blobs-detail',
         queryset=models.Blob.objects.all()
     )
 
@@ -88,7 +88,7 @@ class BlobSerializer(SingleArtifactContentSerializer):
     """
 
     digest = serializers.CharField(help_text="sha256 of the Blob file")
-    media_type = serializers.CharField(help_text="Docker media type of the file")
+    media_type = serializers.CharField(help_text="Blob media type of the file")
 
     class Meta:
         fields = SingleArtifactContentSerializer.Meta.fields + (
@@ -100,7 +100,7 @@ class BlobSerializer(SingleArtifactContentSerializer):
 
 class RegistryPathField(serializers.CharField):
     """
-    Serializer Field for the registry_path field of the DockerDistribution.
+    Serializer Field for the registry_path field of the ContainerDistribution.
     """
 
     def to_representation(self, value):
@@ -114,9 +114,9 @@ class RegistryPathField(serializers.CharField):
         return ''.join([host, '/', value])
 
 
-class DockerRemoteSerializer(RemoteSerializer):
+class ContainerRemoteSerializer(RemoteSerializer):
     """
-    A Serializer for DockerRemote.
+    A Serializer for ContainerRemote.
     """
 
     upstream_name = serializers.CharField(
@@ -147,22 +147,22 @@ class DockerRemoteSerializer(RemoteSerializer):
 
     class Meta:
         fields = RemoteSerializer.Meta.fields + ('upstream_name', 'whitelist_tags',)
-        model = models.DockerRemote
+        model = models.ContainerRemote
 
 
-class DockerDistributionSerializer(RepositoryVersionDistributionSerializer):
+class ContainerDistributionSerializer(RepositoryVersionDistributionSerializer):
     """
-    A serializer for DockerDistribution.
+    A serializer for ContainerDistribution.
     """
 
     registry_path = RegistryPathField(
         source='base_path', read_only=True,
-        help_text=_('The Registry hostame:port/name/ to use with docker pull command defined by '
+        help_text=_('The Registry hostame:port/name/ to use with docker/podman pull command defined by '
                     'this distribution.')
     )
 
     class Meta:
-        model = models.DockerDistribution
+        model = models.ContainerDistribution
         fields = tuple(set(RepositoryVersionDistributionSerializer.Meta.fields) - {'base_url'}) + (
             'registry_path',)
 
@@ -270,7 +270,7 @@ class UnTagImageSerializer(TagOperationSerializer):
 
 class RecursiveManageSerializer(serializers.Serializer):
     """
-    Serializer for adding and removing content to/from a Docker repository.
+    Serializer for adding and removing content to/from a Container repository.
     """
 
     repository = serializers.HyperlinkedRelatedField(

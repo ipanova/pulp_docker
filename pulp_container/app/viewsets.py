@@ -108,17 +108,17 @@ class BlobViewSet(ReadOnlyContentViewSet):
     filterset_class = BlobFilter
 
 
-class DockerRemoteViewSet(RemoteViewSet):
+class ContainerRemoteViewSet(RemoteViewSet):
     """
-    Docker remotes represent an external repository that implements the Docker
-    Registry API. Docker remotes support deferred downloading by configuring
+    Container remotes represent an external repository that implements the Docker
+    Registry API. Container remotes support deferred downloading by configuring
     the ``policy`` field.  ``on_demand`` and ``streamed`` policies can provide
     significant disk space savings.
     """
 
-    endpoint_name = 'docker'
-    queryset = models.DockerRemote.objects.all()
-    serializer_class = serializers.DockerRemoteSerializer
+    endpoint_name = 'container'
+    queryset = models.ContainerRemote.objects.all()
+    serializer_class = serializers.ContainerRemoteSerializer
 
     # This decorator is necessary since a sync operation is asyncrounous and returns
     # the id and href of the sync task.
@@ -148,18 +148,18 @@ class DockerRemoteViewSet(RemoteViewSet):
         return OperationPostponedResponse(result, request)
 
 
-class DockerDistributionViewSet(BaseDistributionViewSet):
+class ContainerDistributionViewSet(BaseDistributionViewSet):
     """
-    The Docker Distribution will serve the latest version of a Repository if
-    ``repository`` is specified. The Docker Distribution will serve a specific
+    The Container Distribution will serve the latest version of a Repository if
+    ``repository`` is specified. The Container distribution will serve a specific
     repository version if ``repository_version``. Note that **either**
-    ``repository`` or ``repository_version`` can be set on a Docker
+    ``repository`` or ``repository_version`` can be set on a Container
     Distribution, but not both.
     """
 
-    endpoint_name = 'docker'
-    queryset = models.DockerDistribution.objects.all()
-    serializer_class = serializers.DockerDistributionSerializer
+    endpoint_name = 'container'
+    queryset = models.ContainerDistribution.objects.all()
+    serializer_class = serializers.ContainerDistributionSerializer
 
 
 class TagImageViewSet(drf_viewsets.ViewSet):
@@ -238,13 +238,13 @@ class UnTagImageViewSet(drf_viewsets.ViewSet):
 
 class RecursiveAdd(drf_viewsets.ViewSet):
     """
-    ViewSet for recursively adding Docker content.
+    ViewSet for recursively adding content.
     """
 
     serializer_class = serializers.RecursiveManageSerializer
 
     @swagger_auto_schema(
-        operation_description="Trigger an asynchronous task to recursively add docker content.",
+        operation_description="Trigger an asynchronous task to recursively add content.",
         responses={202: AsyncOperationResponseSerializer},
         request_body=serializers.RecursiveManageSerializer,
     )
@@ -294,7 +294,7 @@ class TagCopyViewSet(drf_viewsets.ViewSet):
         source_latest = serializer.validated_data['source_repository_version']
         destination = serializer.validated_data['destination_repository']
         content_tags_in_repo = source_latest.content.filter(
-            _type="docker.tag"
+            _type="container.tag"
         )
         tags_in_repo = models.Tag.objects.filter(
             pk__in=content_tags_in_repo,
@@ -335,7 +335,7 @@ class ManifestCopyViewSet(drf_viewsets.ViewSet):
         source_latest = serializer.validated_data['source_repository_version']
         destination = serializer.validated_data['destination_repository']
         content_manifests_in_repo = source_latest.content.filter(
-            _type="docker.manifest"
+            _type="container.manifest"
         )
         manifests_in_repo = models.Manifest.objects.filter(
             pk__in=content_manifests_in_repo,
@@ -360,13 +360,13 @@ class ManifestCopyViewSet(drf_viewsets.ViewSet):
 
 class RecursiveRemove(drf_viewsets.ViewSet):
     """
-    ViewSet for recursively removing Docker content.
+    ViewSet for recursively removing content.
     """
 
     serializer_class = serializers.RecursiveManageSerializer
 
     @swagger_auto_schema(
-        operation_description="Trigger an asynchronous task to recursively remove docker content.",
+        operation_description="Trigger an asynchronous task to recursively remove content.",
         responses={202: AsyncOperationResponseSerializer},
         request_body=serializers.RecursiveManageSerializer,
     )

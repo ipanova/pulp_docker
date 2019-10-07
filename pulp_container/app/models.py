@@ -8,7 +8,7 @@ from pulpcore.plugin.download import DownloaderFactory
 from pulpcore.plugin.models import Content, Remote, RepositoryVersion, RepositoryVersionDistribution
 
 from . import downloaders
-from pulp_docker.constants import MEDIA_TYPE
+from pulp_container.constants import MEDIA_TYPE
 
 
 logger = getLogger(__name__)
@@ -48,13 +48,13 @@ class Blob(Content):
 
 class Manifest(Content):
     """
-    A docker manifest.
+    A container manifest.
 
     This content has one artifact.
 
     Fields:
         digest (models.CharField): The manifest digest.
-        schema_version (models.IntegerField): The docker schema version.
+        schema_version (models.IntegerField): The schema version.
         media_type (models.CharField): The manifest media type.
 
     Relations:
@@ -167,9 +167,9 @@ class Tag(Content):
         )
 
 
-class DockerRemote(Remote):
+class ContainerRemote(Remote):
     """
-    A Remote for DockerContent.
+    A Remote for ContainerContent.
 
     Fields:
         upstream_name (models.CharField): The name of the image at the remote.
@@ -181,7 +181,7 @@ class DockerRemote(Remote):
     include_foreign_layers = models.BooleanField(default=False)
     whitelist_tags = models.TextField(null=True)
 
-    TYPE = 'docker'
+    TYPE = 'container'
 
     @property
     def download_factory(self):
@@ -238,14 +238,14 @@ class DockerRemote(Remote):
     @property
     def namespaced_upstream_name(self):
         """
-        Returns an upstream Docker repository name with a namespace.
+        Returns an upstream registry repository name with a namespace.
 
         For upstream repositories that do not have a namespace, the convention is to use 'library'
         as the namespace.
         """
-        # Docker's registry aligns non-namespaced images to the library namespace.
-        docker_registry = re.search(r'registry[-,\w]*.docker.io', self.url, re.IGNORECASE)
-        if '/' not in self.upstream_name and docker_registry:
+        # Container's registry aligns non-namespaced images to the library namespace.
+        container_registry = re.search(r'registry[-,\w]*.docker.io', self.url, re.IGNORECASE)
+        if '/' not in self.upstream_name and container_registry:
             return 'library/{name}'.format(name=self.upstream_name)
         else:
             return self.upstream_name
@@ -254,16 +254,16 @@ class DockerRemote(Remote):
         default_related_name = "%(app_label)s_%(model_name)s"
 
 
-class DockerDistribution(RepositoryVersionDistribution):
+class ContainerDistribution(RepositoryVersionDistribution):
     """
-    A docker distribution defines how a publication is distributed by Pulp's webserver.
+    A container distribution defines how a publication is distributed by Pulp's webserver.
     """
 
-    TYPE = 'docker'
+    TYPE = 'container'
 
     def get_repository_version(self):
         """
-        Returns the repository version that is supposed to be served by this DockerDistribution.
+        Returns the repository version that is supposed to be served by this ContainerDistribution.
         """
         if self.repository:
             return RepositoryVersion.latest(self.repository)

@@ -14,8 +14,8 @@ from pulpcore.plugin.stages import (
     QueryExistingContents,
 )
 
-from .sync_stages import InterrelateContent, DockerFirstStage
-from pulp_docker.app.models import DockerRemote, Tag
+from .sync_stages import InterrelateContent, ContainerFirstStage
+from pulp_container.app.models import ContainerRemote, Tag
 
 
 log = logging.getLogger(__name__)
@@ -35,21 +35,21 @@ def synchronize(remote_pk, repository_pk):
         ValueError: If the remote does not specify a URL to sync
 
     """
-    remote = DockerRemote.objects.get(pk=remote_pk)
+    remote = ContainerRemote.objects.get(pk=remote_pk)
     repository = Repository.objects.get(pk=repository_pk)
     if not remote.url:
         raise ValueError(_('A remote must have a url specified to synchronize.'))
     remove_duplicate_tags = [{'model': Tag, 'field_names': ['name']}]
     log.info(_('Synchronizing: repository={r} remote={p}').format(
         r=repository.name, p=remote.name))
-    first_stage = DockerFirstStage(remote)
-    dv = DockerDeclarativeVersion(first_stage, repository, remove_duplicates=remove_duplicate_tags)
+    first_stage = ContainerFirstStage(remote)
+    dv = ContainerDeclarativeVersion(first_stage, repository, remove_duplicates=remove_duplicate_tags)
     dv.create()
 
 
-class DockerDeclarativeVersion(DeclarativeVersion):
+class ContainerDeclarativeVersion(DeclarativeVersion):
     """
-    Subclassed Declarative version creates a custom pipeline for Docker sync.
+    Subclassed Declarative version creates a custom pipeline for Container sync.
     """
 
     def pipeline_stages(self, new_version):

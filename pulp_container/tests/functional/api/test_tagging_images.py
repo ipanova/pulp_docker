@@ -6,10 +6,10 @@ from pulp_smash import api, config
 from pulp_smash.pulp3.utils import gen_repo, sync
 from pulp_smash.pulp3.constants import REPO_PATH
 
-from pulp_docker.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
-from pulp_docker.tests.functional.utils import gen_docker_remote
+from pulp_container.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
+from pulp_container.tests.functional.utils import gen_docker_remote
 
-from pulp_docker.tests.functional.constants import (
+from pulp_container.tests.functional.constants import (
     DOCKER_TAG_PATH,
     DOCKER_TAGGING_PATH,
     DOCKER_REMOTE_PATH,

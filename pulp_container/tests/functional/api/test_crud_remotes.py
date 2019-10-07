@@ -11,9 +11,9 @@ from pulp_smash.pulp3.constants import (
     ON_DEMAND_DOWNLOAD_POLICIES,
 )
 
-from pulp_docker.tests.functional.constants import DOCKER_REMOTE_PATH
-from pulp_docker.tests.functional.utils import skip_if, gen_docker_remote
-from pulp_docker.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
+from pulp_container.tests.functional.constants import DOCKER_REMOTE_PATH
+from pulp_container.tests.functional.utils import skip_if, gen_docker_remote
+from pulp_container.tests.functional.utils import set_up_module as setUpModule  # noqa:F401
 
 
 class CRUDRemotesTestCase(unittest.TestCase):

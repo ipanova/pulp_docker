@@ -22,7 +22,7 @@ Response:
 
     {
         "_created": "2019-09-05T14:29:51.742086Z",
-        "_href": "/pulp/api/v3/distributions/docker/docker/1b461dac-0839-4049-aa8f-92f8e8f7f034/",
+        "_href": "/pulp/api/v3/distributions/container/container/1b461dac-0839-4049-aa8f-92f8e8f7f034/",
         "base_path": "test",
         "content_guard": null,
         "name": "testing-hello",

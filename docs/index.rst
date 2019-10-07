@@ -1,7 +1,7 @@
 Pulp Docker Plugin
 ==================
 
-The ``pulp_docker`` plugin extends `pulpcore <https://pypi.python.org/pypi/pulpcore/>`__ to support
+The ``pulp_container`` plugin extends `pulpcore <https://pypi.python.org/pypi/pulpcore/>`__ to support
 hosting containers and container metadata, supporting ``docker pull`` and ``podman pull``.
 
 If you are just getting started, we recommend getting to know the :doc:`basic
